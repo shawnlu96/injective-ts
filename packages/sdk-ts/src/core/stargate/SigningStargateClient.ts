@@ -191,6 +191,7 @@ export class SigningStargateClient extends StargateClient {
     amount: readonly Coin[],
     fee: StdFee | 'auto' | number,
     memo = '',
+    explicitSignerData : SignerData | undefined = undefined,
   ): Promise<DeliverTxResponse> {
     const sendMsg: MsgSendEncodeObject = {
       typeUrl: '/cosmos.bank.v1beta1.MsgSend',
@@ -200,7 +201,7 @@ export class SigningStargateClient extends StargateClient {
         amount: [...amount],
       },
     }
-    return this.signAndBroadcast(senderAddress, [sendMsg], fee, memo)
+    return this.signAndBroadcast(senderAddress, [sendMsg], fee, memo, explicitSignerData)
   }
 
   public async delegateTokens(
@@ -290,6 +291,7 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee | 'auto' | number,
     memo = '',
+    explicitSignerData : SignerData | undefined = undefined,
   ): Promise<DeliverTxResponse> {
     let usedFee: StdFee
     if (fee == 'auto' || typeof fee === 'number') {
@@ -306,7 +308,7 @@ export class SigningStargateClient extends StargateClient {
     } else {
       usedFee = fee
     }
-    const txRaw = await this.sign(signerAddress, messages, usedFee, memo)
+    const txRaw = await this.sign(signerAddress, messages, usedFee, memo, explicitSignerData)
     const txBytes = TxRaw.encode(txRaw).finish()
     return this.broadcastTx(
       txBytes,
@@ -331,6 +333,7 @@ export class SigningStargateClient extends StargateClient {
     fee: StdFee,
     memo: string,
     explicitSignerData?: SignerData,
+
   ): Promise<TxRaw> {
     let signerData: SignerData
     if (explicitSignerData) {
